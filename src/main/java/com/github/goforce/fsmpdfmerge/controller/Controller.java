@@ -1,8 +1,10 @@
 package com.github.goforce.fsmpdfmerge.controller;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+//import java.util.HashMap;
+//import java.util.Map;
 import java.util.Base64;
 
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.goforce.fsmpdfmerge.model.Param;
+import com.github.goforce.fsmpdfmerge.model.Result;
 
 import com.sforce.soap.partner.*;
 import com.sforce.soap.partner.sobject.*;
@@ -43,22 +46,19 @@ public class Controller {
 
             PartnerConnection conn = Connector.newConnection( config );
 
-            String[] cdIds = new String[]{ param.getContentDocument1Id(), param.getContentDocument2Id() };
-            System.out.println( "ContentDocument Ids submitted: " + Arrays.toString( cdIds ) );
-            SObject[] cds = conn.retrieve( "Id,LatestPublishedVersionId", "ContentDocument", cdIds );
-
-            String cv1Id = (String) cds[0].getField( "LatestPublishedVersionId" );
-            String cv2Id = (String) cds[1].getField( "LatestPublishedVersionId" );
-
-            SObject[] cvs = conn.retrieve( "Id,VersionData", "ContentVersion", new String[]{ cv1Id, cv2Id } );
-            String pdf1 = (String) cvs[0].getField( "VersionData" );
-            String pdf2 = (String) cvs[1].getField( "VersionData" );
-            InputStream is1 = new ByteArrayInputStream( Base64.getDecoder().decode( pdf1 ) );
-            InputStream is2 = new ByteArrayInputStream( Base64.getDecoder().decode( pdf2 ) );
+            String[] contentVersionIds = param.getContentVersionIds();
+            System.out.println( "ContentVersion Ids submitted: " + Arrays.toString( contentVersionIds ) );
+            SObject[] cvs = conn.retrieve( "Id,VersionData", "ContentVersion", contentVersionIds );
+            List<InputStream> iss = new ArrayList<InputStream>();
+            for ( int i = 0; i < cvs.length; i++ ) {
+                String pdf = (String) cvs[i].getField( "VersionData" );
+                InputStream is = new ByteArrayInputStream( Base64.getDecoder().decode( pdf ) );
+                iss.add( is );
+            }
 
             ByteArrayOutputStream mergedPDFOutputStream = new ByteArrayOutputStream();
             PDFMergerUtility pdfMerger = new PDFMergerUtility();
-            pdfMerger.addSources( Arrays.asList( is1, is2 ) );
+            pdfMerger.addSources( iss );
             pdfMerger.setDestinationStream( mergedPDFOutputStream );
 
             PDDocumentInformation pdfDocumentInfo = new PDDocumentInformation();
@@ -73,19 +73,32 @@ public class Controller {
             SObject content = new SObject( "ContentVersion" );
 
             // Populate the ContentVersion fields
-            content.setField( "PathOnClient", "MergedMegaServiceReport.pdf" );
-            content.setField( "Title", "Very Final Service Report" );
-            content.setField( "Description", "Service report merged from 1 and 2" );
+            if ( param.getPathOnClient() == null ) {
+                content.setField( "PathOnClient", "ServiceReport.pdf" );
+            } else {
+                content.setField( "PathOnClient", param.getPathOnClient() );
+            }
+            if ( param.getTitle() == null ) {
+                content.setField( "Title", "Service Report" );
+            } else {
+                content.setField( "Title", param.getTitle() );
+            }
+            if ( param.getDescription() == null ) {
+                content.setField( "Description", "Service Report" );
+            } else {
+                content.setField( "Description", param.getDescription() );
+            }
+            
             //content.setField("VersionData", Base64.getEncoder().encodeToString("this is text message".getBytes()));
             content.setField( "VersionData", mergedPDFOutputStream.toByteArray() );
 
             // Upload the ContentVerion
-            String mergedId = null;
+            Result result = new Result();
             {
                 SaveResult[] srs = conn.create( new SObject[] { content } );
                 if ( srs[0].isSuccess() ) {
                     System.out.println( "Merged ContentVersion created : " + srs[0].getId() );
-                    mergedId = srs[0].getId();
+                    result.setContentVersionId( srs[0].getId() );
                 } else {
                     System.out.println( "Merged ContentVersion failed --------->" );
                     com.sforce.soap.partner.Error[] errors = srs[0].getErrors();
@@ -97,30 +110,7 @@ public class Controller {
                 }
             }
 
-            // add link to work order
-            SObject[] cvm = conn.retrieve( "Id,ContentDocumentId", "ContentVersion", new String[]{ mergedId } );
-            String cdmId = (String) cvm[0].getField( "ContentDocumentId" );
-            SObject cdl = new SObject( "ContentDocumentLink" );
-            cdl.setField( "ContentDocumentId", cdmId );
-            cdl.setField( "LinkedEntityId", param.getWorkOrderId() );
-            cdl.setField( "ShareType", "V" );
-            cdl.setField( "Visibility", "AllUsers" );
-            {
-                SaveResult[] srs = conn.create( new SObject[] { cdl } );
-                if ( srs[0].isSuccess() ) {
-                    System.out.println( "ContentDocumentLink created : " + srs[0].getId() );
-                } else {
-                    System.out.println( "ContentDocumentLink failed --------->" );
-                    com.sforce.soap.partner.Error[] errors = srs[0].getErrors();
-                    for ( int i = 0; i < errors.length; i++) {
-                        System.out.println( errors[i].getMessage() );
-                    }
-                    System.out.println("<---------" );
-                    return new ResponseEntity<>( "FAILED_BIG_WAY", HttpStatus.BAD_REQUEST );
-                }
-            }
-
-            return new ResponseEntity<>( mergedId, HttpStatus.OK );
+            return new ResponseEntity<>( result, HttpStatus.OK );
 
         } catch ( Exception e ) {
             e.printStackTrace();

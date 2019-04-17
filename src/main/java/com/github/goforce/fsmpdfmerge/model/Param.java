@@ -3,38 +3,46 @@ package com.github.goforce.fsmpdfmerge.model;
 public class Param {
     private String serviceUrl;
     private String sessionId;
-    private String contentDocument1Id;
-    private String contentDocument2Id;
-    private String workOrderId;
+    private String contentVersionIds[];
+    private String pathOnClient;
+    private String title;
+    private String description;
 
     public String getServiceUrl() {
         return serviceUrl;
     }
-    public void setServiceUrl(String url) {
+    public void setServiceUrl( String url ) {
         this.serviceUrl = url;
     }
     public String getSessionId() {
         return sessionId;
     }
-    public void setSessionId(String id) {
+    public void setSessionId( String id ) {
         this.sessionId = id;
     }
-    public String getContentDocument1Id() {
-        return contentDocument1Id;
+    public String[] getContentVersionIds() {
+        return contentVersionIds;
     }
-    public void setContentDocument1Id(String id) {
-        this.contentDocument1Id = id;
+    public void setContentVersionIds( String[] ids ) {
+        this.contentVersionIds = ids;
     }
-    public String getContentDocument2Id() {
-        return contentDocument2Id;
+    public String getPathOnClient() {
+        return pathOnClient;
     }
-    public void setContentDocument2Id(String id) {
-        this.contentDocument2Id = id;
+    public void setPathOnClient( String pathOnClient ) {
+        this.pathOnClient = pathOnClient;
     }
-    public String getWorkOrderId() {
-        return workOrderId;
+    public String getTitle() {
+        return title;
     }
-    public void setWorkOrderId(String id) {
-        this.workOrderId = id;
+    public void setTitle( String title ) {
+        this.title = title;
     }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription( String description ) {
+        this.description = description;
+    }
+
 }

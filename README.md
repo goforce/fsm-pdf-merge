@@ -1,6 +1,7 @@
 # fsm-pdf-merge
 
-Service Report merge service.
+Merge list of ContentVersion pdf documents into single pdf. All ContentVersions should be of type pdf.
+REST service accepting list of ContentVersion Ids and returning single Id of merged ContentVersion document.
 
 ## Running Locally
 
