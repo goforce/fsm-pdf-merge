@@ -36,7 +36,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 public class Controller {
 
     @RequestMapping( value = "/merge", method = RequestMethod.POST )
-    public ResponseEntity<Object> postCall( @RequestBody Param param ) {
+    public ResponseEntity<Result> postCall( @RequestBody Param param ) {
 
 
         try {
@@ -106,15 +106,19 @@ public class Controller {
                         System.out.println( errors[i].getMessage() );
                     }
                     System.out.println("<---------" );
-                    return new ResponseEntity<>( "FAILED_BIG_WAY", HttpStatus.BAD_REQUEST );
+                    Result res = new Result();
+                    res.setError( "FAILED_BIG_WAY" );
+                    return new ResponseEntity<Result>( res, HttpStatus.BAD_REQUEST );
                 }
             }
 
-            return new ResponseEntity<>( result, HttpStatus.OK );
+            return new ResponseEntity<Result>( result, HttpStatus.OK );
 
         } catch ( Exception e ) {
             e.printStackTrace();
-            return new ResponseEntity<>( e.toString(), HttpStatus.OK );
+            Result res = new Result();
+            res.setError( e.toString() );
+            return new ResponseEntity<Result>( res, HttpStatus.OK );
         }
     }
 
