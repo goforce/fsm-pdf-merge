@@ -1,14 +1,14 @@
 package com.github.goforce.fsmpdfmerge.model;
 
 public class Result {
-    private String contentVersionId;
+    private String contentVersionIds[];
     private String error;
 
-    public String getContentVersionId() {
-        return contentVersionId;
+    public String[] getContentVersionIds() {
+        return contentVersionIds;
     }
-    public void setContentVersionId( String id ) {
-        this.contentVersionId = id;
+    public void setContentVersionIds( String[] ids ) {
+        this.contentVersionIds = ids;
     }
     public String getError() {
         return error;
