@@ -95,12 +95,15 @@ public class Controller {
                 //content.setField("VersionData", Base64.getEncoder().encodeToString("this is text message".getBytes()));
                 content.setField( "VersionData", mergedPDFOutputStream.toByteArray() );
 
-                // Upload the ContentVerion
+                String mergedContentVersionId;
+
+                // Upload the ContentVersion
                 {
                     SaveResult[] srs = conn.create( new SObject[] { content } );
                     if ( srs[0].isSuccess() ) {
-                        System.out.println( "Merged ContentVersion created : " + srs[0].getId() );
-                        createdContentVersionIds.add( srs[0].getId() );
+                        mergedContentVersionId = srs[0].getId();
+                        System.out.println( "Merged ContentVersion created : " + mergedContentVersionId );
+                        createdContentVersionIds.add( mergedContentVersionId );
                     } else {
                         System.out.println( "Merged ContentVersion failed --------->" );
                         com.sforce.soap.partner.Error[] errors = srs[0].getErrors();
@@ -108,17 +111,50 @@ public class Controller {
                             System.out.println( errors[i].getMessage() );
                         }
                         System.out.println("<---------" );
-                        result.setError( "FAILED_BIG_WAY" );
+                        result.setErrorMessage( "FAILED_BIG_WAY" );
                         return new ResponseEntity<Result>( result, HttpStatus.BAD_REQUEST );
                     }
                 }
+
+                // add link to target objects
+                if ( doc.getTargetObjectIds().length > 0 ) {
+                    SObject[] cvm = conn.retrieve( "Id,ContentDocumentId", "ContentVersion", new String[]{ mergedContentVersionId } );
+                    String cdmId = (String) cvm[0].getField( "ContentDocumentId" );
+                    SObject[] cdls = new SObject[doc.getTargetObjectIds().length];
+                    for ( int j = 0; j < doc.getTargetObjectIds().length; j++ ) {
+                        SObject cdl = new SObject( "ContentDocumentLink" );
+                        cdl.setField( "ContentDocumentId", cdmId );
+                        cdl.setField( "LinkedEntityId", doc.getTargetObjectIds()[j] );
+                        cdl.setField( "ShareType", "V" );
+                        cdl.setField( "Visibility", "AllUsers" );
+                        cdls[j] = cdl;
+                    }
+                    {
+                        SaveResult[] srs = conn.create( cdls );
+                        for ( int j = 0; j < srs.length; j++ ) {
+                            if ( srs[j].isSuccess() ) {
+                                System.out.println( "ContentDocumentLink created : " + srs[j].getId() );
+                            } else {
+                                System.out.println( "ContentDocumentLink failed --------->" );
+                                com.sforce.soap.partner.Error[] errors = srs[j].getErrors();
+                                for ( int k = 0; k < errors.length; k++) {
+                                    System.out.println( errors[k].getMessage() );
+                                }
+                                System.out.println("<---------" );
+                                result.setErrorMessage( "FAILED_BIG_WAY" );
+                                return new ResponseEntity<Result>( result, HttpStatus.BAD_REQUEST );
+                            }
+                        }
+                    }
+                }
+
             }
             result.setContentVersionIds( createdContentVersionIds.toArray( new String[0] ) );
             return new ResponseEntity<Result>( result, HttpStatus.OK );
 
         } catch ( Exception e ) {
             e.printStackTrace();
-            result.setError( e.toString() );
+            result.setErrorMessage( e.toString() );
             return new ResponseEntity<Result>( result, HttpStatus.OK );
         }
     }

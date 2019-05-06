@@ -2,7 +2,7 @@ package com.github.goforce.fsmpdfmerge.model;
 
 public class Result {
     private String contentVersionIds[];
-    private String error;
+    private String errorMessage;
 
     public String[] getContentVersionIds() {
         return contentVersionIds;
@@ -10,11 +10,11 @@ public class Result {
     public void setContentVersionIds( String[] ids ) {
         this.contentVersionIds = ids;
     }
-    public String getError() {
-        return error;
+    public String getErrorMessage() {
+        return errorMessage;
     }
-    public void setError( String err ) {
-        this.error = err;
+    public void setErrorMessage( String err ) {
+        this.errorMessage = err;
     }
 
 }
