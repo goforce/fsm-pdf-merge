@@ -3,13 +3,10 @@ package com.github.goforce.fsmpdfmerge.controller;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.HashMap;
-//import java.util.Map;
 import java.util.Base64;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,7 +26,6 @@ import java.io.OutputStream;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
-//import org.apache.pdfbox.pdmodel.common.PDMetadata;
 
 @RestController
 public class Controller {
@@ -105,13 +101,9 @@ public class Controller {
                         System.out.println( "Merged ContentVersion created : " + mergedContentVersionId );
                         createdContentVersionIds.add( mergedContentVersionId );
                     } else {
-                        System.out.println( "Merged ContentVersion failed --------->" );
-                        com.sforce.soap.partner.Error[] errors = srs[0].getErrors();
-                        for ( int i = 0; i < errors.length; i++) {
-                            System.out.println( errors[i].getMessage() );
-                        }
-                        System.out.println("<---------" );
-                        result.setErrorMessage( "FAILED_BIG_WAY" );
+                        String err = formatError( srs[0].getErrors() );
+                        System.out.println( "Merged ContentVersion failed --------->\n" + err + "<---------" );
+                        result.setErrorMessage( err );
                         return new ResponseEntity<Result>( result, HttpStatus.BAD_REQUEST );
                     }
                 }
@@ -135,13 +127,9 @@ public class Controller {
                             if ( srs[j].isSuccess() ) {
                                 System.out.println( "ContentDocumentLink created : " + srs[j].getId() );
                             } else {
-                                System.out.println( "ContentDocumentLink failed --------->" );
-                                com.sforce.soap.partner.Error[] errors = srs[j].getErrors();
-                                for ( int k = 0; k < errors.length; k++) {
-                                    System.out.println( errors[k].getMessage() );
-                                }
-                                System.out.println("<---------" );
-                                result.setErrorMessage( "FAILED_BIG_WAY" );
+                                String err = formatError( srs[0].getErrors() );
+                                System.out.println( "Insert ContentDocumentLink failed --------->\n" + err + "<---------" );
+                                result.setErrorMessage( err );
                                 return new ResponseEntity<Result>( result, HttpStatus.BAD_REQUEST );
                             }
                         }
@@ -162,6 +150,14 @@ public class Controller {
     @RequestMapping(value = "/merge")
     public ResponseEntity<Object> getCall() {
         return new ResponseEntity<>( "All Good", HttpStatus.OK );
+    }
+
+    private String renderError( com.sforce.soap.partner.Error[] errors, String logHeader ){
+        String s = "";
+        for ( int k = 0; k < errors.length; k++) {
+            s += errors[k].getMessage() + "\n";
+        }
+
     }
 
 }

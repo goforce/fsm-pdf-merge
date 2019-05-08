@@ -1,7 +1,7 @@
 # fsm-pdf-merge
 
-Merge list of ContentVersion pdf documents into single pdf. All ContentVersions should be of type pdf.
-REST service accepting list of ContentVersion Ids and returning single Id of merged ContentVersion document.
+REST service merging Content Version documents (PDF only) to single PDF. Merged document is saved as
+new Content Version document and optionally linked to SObjects.
 
 ## Running Locally
 
@@ -29,3 +29,5 @@ $ heroku open
 For more information about using Java on Heroku, see these Dev Center articles:
 
 - [Java on Heroku](https://devcenter.heroku.com/categories/java)
+- [Deploying Spring Boot apps to Heroku] (https://devcenter.heroku.com/articles/deploying-spring-boot-apps-to-heroku)
+- [Preparing Spring Boot app for production on Heroku] (https://devcenter.heroku.com/articles/preparing-a-spring-boot-app-for-production-on-heroku)

@@ -1,6 +1,6 @@
 {
-  "name": "FSM Service Report Merger",
-  "description": "Merge two service reports into one PDF and add to Files on the work order.",
+  "name": "PDF Merger for Force.com",
+  "description": "REST service to merge PDF documents from Force.com platform",
   "repository": "https://github.com/goforce/fsm-pdf-merge",
   "image": "heroku/gradle"
 }
