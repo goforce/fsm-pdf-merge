@@ -152,12 +152,12 @@ public class Controller {
         return new ResponseEntity<>( "All Good", HttpStatus.OK );
     }
 
-    private String renderError( com.sforce.soap.partner.Error[] errors, String logHeader ){
+    private String formatError( com.sforce.soap.partner.Error[] errors ) {
         String s = "";
         for ( int k = 0; k < errors.length; k++) {
             s += errors[k].getMessage() + "\n";
         }
-
+        return s;
     }
 
 }
